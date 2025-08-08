@@ -14,12 +14,25 @@ function triggerAnnoyance() {
   });
 }
 
+// Keep the service worker alive for 30 seconds after an event
+let keepAlive;
+chrome.runtime.onConnect.addListener(port => {
+  if (port.name === 'thought-annihilator') {
+    keepAlive = setInterval(() => {
+      // Dummy message to keep the service worker alive
+      port.postMessage({ keepAlive: true });
+    }, 25000); // Send a message every 25 seconds
+    port.onDisconnect.addListener(() => {
+      clearInterval(keepAlive);
+      keepAlive = null;
+    });
+  }
+});
+
+
 // Listen for keyboard and mouse events on all pages
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-  // Add an extra check for the tab's URL to ensure the script only runs on valid pages
   if (tab && tab.url && changeInfo.status === 'complete' && !tab.url.startsWith("chrome://") && !tab.url.startsWith("about:")) {
-    // We now have a content_scripts block in manifest.json, so the content script
-    // is injected automatically. We just need to reset the timer here.
     if (tab.active) {
       resetTimer();
     }
@@ -41,5 +54,5 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 
-// Initial call to start the timer when the extension is loaded  erf
+// Initial call to start the timer when the extension is loaded
 resetTimer();
