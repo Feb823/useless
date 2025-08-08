@@ -19,9 +19,8 @@ let keepAlive;
 chrome.runtime.onConnect.addListener(port => {
   if (port.name === 'thought-annihilator') {
     keepAlive = setInterval(() => {
-      // Dummy message to keep the service worker alive
       port.postMessage({ keepAlive: true });
-    }, 25000); // Send a message every 25 seconds
+    }, 25000);
     port.onDisconnect.addListener(() => {
       clearInterval(keepAlive);
       keepAlive = null;
@@ -29,8 +28,6 @@ chrome.runtime.onConnect.addListener(port => {
   }
 });
 
-
-// Listen for keyboard and mouse events on all pages
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
   if (tab && tab.url && changeInfo.status === 'complete' && !tab.url.startsWith("chrome://") && !tab.url.startsWith("about:")) {
     if (tab.active) {
@@ -39,7 +36,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
   }
 });
 
-// We also need to listen for when a tab becomes active to reset the timer
 chrome.tabs.onActivated.addListener(function (activeInfo) {
   chrome.tabs.get(activeInfo.tabId, function(tab) {
     if (tab && tab.url && !tab.url.startsWith("chrome://") && !tab.url.startsWith("about:")) {
@@ -54,5 +50,4 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 
-// Initial call to start the timer when the extension is loaded
 resetTimer();
