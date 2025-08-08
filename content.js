@@ -13,11 +13,11 @@
   }
 
   const GIFS = [
-    "https://media.giphy.com/media/oW4icW0Qy1ZJp4XGkG/giphy.gif",
-    "https://media.giphy.com/media/l4FGp6wWq7y09T4Yw/giphy.gif",
-    "https://media.giphy.com/media/xT5LMwz340wzQn6j8c/giphy.gif",
-    "https://media.giphy.com/media/9rjvN2S6d85Pa/giphy.gif",
-    "https://media.giphy.com/media/U5GLb0Nd5UrR6/giphy.gif"
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3M0ZmZqdmx2OHhnbHM3aTgwMXhnMnpwdGk5dzhzZG0zcDhxNm11cyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nsMPhWK6bfxHq/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWtoc2M2ZWIwZzhpMjlsZnVyemRwdGIxZ3VpZGcxNXE4NTVpcHJvNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fMmIxEkxvnW48/giphy.gif",
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGVmYndoaDVxcWFpanBla2UzOGtlbzB2b2E0dHpkejQyczd4OWVzNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/zsp6JrZQf3rPy/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYXMxMnprdnd5b2RtYTUwOTN0Y3JkaXViMTBva3J5dGJ5dG9xODdkOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OhEWDytX1xcg8/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ2NtNXhxNGhtdTR3c3VxZTBkcXMxbnJwdGxwcGh2emcyaGFyc2VqciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7Yd8ZAwBkEkCs/giphy.gif"
   ];
 
   function getRandomGif() {
