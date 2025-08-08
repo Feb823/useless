@@ -8,13 +8,17 @@ function resetTimer() {
 
 function triggerAnnoyance() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, { action: "annihilate" });
+    // Check if the tab URL is valid before sending a message
+    if (tabs[0] && tabs[0].url && !tabs[0].url.startsWith("chrome://") && !tabs[0].url.startsWith("about:")) {
+      chrome.tabs.sendMessage(tabs[0].id, { action: "annihilate" });
+    }
   });
 }
 
 // Listen for keyboard and mouse events on all pages
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-  if (changeInfo.status === 'complete' && tab.active) {
+  // Only execute our script on active, complete, and valid pages
+  if (changeInfo.status === 'complete' && tab.active && !tab.url.startsWith("chrome://") && !tab.url.startsWith("about:")) {
     chrome.scripting.executeScript({
       target: { tabId: tabId },
       function: () => {
