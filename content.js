@@ -1,73 +1,115 @@
 (function() {
-  // Connect to background to keep worker alive
-  const port = chrome.runtime.connect({ name: 'thought-annihilator' });
+  // Debug log to verify script is loaded
+  console.log("Thought Bubble Annihilator content script loaded");
 
-  // List of annoying GIFs
-  const annoyingGIFs = [
-    "https://media.giphy.com/media/oW4icW0Qy1ZJp4XGkG/giphy.gif",
-    "https://media.giphy.com/media/l4FGp6wWq7y09T4Yw/giphy.gif",
-    "https://media.giphy.com/media/xT5LMwz340wzQn6j8c/giphy.gif"
-    // Add more GIF URLs here!
-  ];
+  let popupContainer = null;
 
-  // Get a random GIF
-  function getRandomGif() {
-    const randomIndex = Math.floor(Math.random() * annoyingGIFs.length);
-    return annoyingGIFs[randomIndex];
+  // Try to connect to background (MV3 keep-alive)
+  let port;
+  try {
+    port = chrome.runtime.connect({ name: "thought-annihilator" });
+  } catch (e) {
+    console.warn("Extension context connect error:", e);
   }
 
-  // Listen for messages FROM background.js
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "annihilate") {
-      injectAnnoyingGif();
-    }
-  });
+  const GIFS = [
+    "https://media.giphy.com/media/oW4icW0Qy1ZJp4XGkG/giphy.gif",
+    "https://media.giphy.com/media/l4FGp6wWq7y09T4Yw/giphy.gif",
+    "https://media.giphy.com/media/xT5LMwz340wzQn6j8c/giphy.gif",
+    "https://media.giphy.com/media/9rjvN2S6d85Pa/giphy.gif",
+    "https://media.giphy.com/media/U5GLb0Nd5UrR6/giphy.gif"
+  ];
 
-  // Inject a random GIF in the center of the page
-  function injectAnnoyingGif() {
-    const gifUrl = getRandomGif();
-    const container = document.createElement("div");
-    container.style.position = "fixed";
-    container.style.top = "50%";
-    container.style.left = "50%";
-    container.style.transform = "translate(-50%, -50%)";
-    container.style.zIndex = "999999";
-    container.style.background = "rgba(255,255,255,0.7)";
-    container.style.padding = "20px";
-    container.style.borderRadius = "16px";
-    container.style.boxShadow = "0 2px 20px rgba(0,0,0,0.3)";
+  function getRandomGif() {
+    return GIFS[Math.floor(Math.random() * GIFS.length)];
+  }
+
+  function injectAnnoyance() {
+    if (popupContainer) popupContainer.remove();
+
+    popupContainer = document.createElement("div");
+    popupContainer.id = "__thought_annihilator_popup";
+    popupContainer.style.position = "fixed";
+    popupContainer.style.top = "50%";
+    popupContainer.style.left = "50%";
+    popupContainer.style.transform = "translate(-50%, -50%)";
+    popupContainer.style.zIndex = "999999";
+    popupContainer.style.background = "rgba(255,255,255,0.88)";
+    popupContainer.style.boxShadow = "0 2px 30px rgba(0,0,0,0.35)";
+    popupContainer.style.borderRadius = "20px";
+    popupContainer.style.padding = "30px";
+    popupContainer.style.display = "flex";
+    popupContainer.style.flexDirection = "column";
+    popupContainer.style.alignItems = "center";
+    popupContainer.style.minWidth = "220px";
+    popupContainer.style.maxWidth = "90vw";
+    popupContainer.style.maxHeight = "90vh";
+    popupContainer.style.overflow = "auto";
 
     const img = document.createElement("img");
-    img.src = gifUrl;
-    img.style.maxWidth = "300px";
-    img.style.maxHeight = "300px";
+    img.src = getRandomGif();
+    img.style.maxWidth = "280px";
+    img.style.maxHeight = "280px";
     img.alt = "Annoying GIF";
+    img.draggable = false;
+    img.style.pointerEvents = "none";
 
-    // Optional: add a close button
     const close = document.createElement("button");
-    close.textContent = "x";
+    close.textContent = "✖";
+    close.title = "Close";
     close.style.position = "absolute";
     close.style.top = "10px";
     close.style.right = "10px";
-    close.style.background = "red";
+    close.style.background = "#ff5555";
     close.style.color = "white";
     close.style.border = "none";
     close.style.borderRadius = "50%";
-    close.style.width = "25px";
-    close.style.height = "25px";
+    close.style.width = "40px";
+    close.style.height = "40px";
+    close.style.fontSize = "16px";
     close.style.cursor = "pointer";
-    close.onclick = () => container.remove();
+    close.style.boxShadow = "1px 1px 6px rgba(0,0,0,0.09)";
+    close.onclick = e => {
+      if (popupContainer) popupContainer.remove();
+      popupContainer = null;
+      e.stopPropagation();
+    };
 
-    container.appendChild(close);
-    container.appendChild(img);
-    document.body.appendChild(container);
+    popupContainer.appendChild(close);
+    popupContainer.appendChild(img);
+    document.body.appendChild(popupContainer);
   }
 
-  // Listen for user activity, inform background to reset timer
-  ["mousemove", "keydown", "mousedown", "scroll"].forEach(ev => {
-    document.addEventListener(ev, () => {
+  function notifyBackground() {
+    try {
       chrome.runtime.sendMessage({ action: "resetTimer" });
-    }, true);
+    } catch (e) {
+      console.warn("Can't sendMessage; extension context inactive?", e);
+    }
+  }
+
+  ["mousemove", "keydown", "mousedown", "scroll"].forEach(ev => {
+    document.addEventListener(ev, notifyBackground, true);
   });
 
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "annihilate") {
+      try {
+        injectAnnoyance();
+      } catch (e) {
+        console.warn("Annoyance popup inject failed:", e);
+      }
+    }
+  });
+
+  try {
+    window.addEventListener("unload", () => {
+      if (popupContainer) popupContainer.remove();
+      popupContainer = null;
+    });
+  } catch (e) {
+    // Some sites (Google, YouTube, etc.) block unload events for extensions
+    // This is normal and not fatal
+    console.warn("Unload event listener blocked by page policy:", e);
+  }
 })();

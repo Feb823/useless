@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Thought Bubble Annihilator",
   "version": "1.0",
-  "description": "An app that floods your screen with distractions when you pause to think.",
-  "permissions": ["activeTab", "scripting"],
+  "description": "Floods your screen with random GIF distractions when you pause.",
+  "permissions": ["activeTab", "scripting" , "tabs"],
   "background": {
     "service_worker": "background.js"
   },
