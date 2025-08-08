@@ -1,7 +1,7 @@
 (function() {
   console.log("Thought Bubble Annihilator content script loaded");
 
-  // Your GIF URLs (edit or expand if you wish)
+  // Your specified GIF URLs
   const GIFS = [
     "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3M0ZmZqdmx2OHhnbHM3aTgwMXhnMnpwdGk5dzhzZG0zcDhxNm11cyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nsMPhWK6bfxHq/giphy.gif",
     "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWtoc2M2ZWIwZzhpMjlsZnVyemRwdGIxZ3VpZGcxNXE4NTVpcHJvNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fMmIxEkxvnW48/giphy.gif",
@@ -14,20 +14,28 @@
     return GIFS[Math.floor(Math.random() * GIFS.length)];
   }
 
-  // Create a BIG popup at a random position
+  // Create a big popup at a random position ensuring full viewport coverage
   function createHugePopup() {
+    const popupWidthVw = 44; // width in viewport width units
+    const popupHeightVh = 44; // height in viewport height units
+
+    const maxLeft = 100 - popupWidthVw;
+    const maxTop = 100 - popupHeightVh;
+
+    const left = Math.floor(Math.random() * maxLeft);
+    const top = Math.floor(Math.random() * maxTop);
+
     const popup = document.createElement("div");
     popup.style.position = "fixed";
-    // Randomize top/left for page coverage, but ensure the popup stays mostly on screen
-    popup.style.top = `${Math.floor(Math.random() * 70)}vh`;
-    popup.style.left = `${Math.floor(Math.random() * 70)}vw`;
+    popup.style.top = `${top}vh`;
+    popup.style.left = `${left}vw`;
+    popup.style.minWidth = `${popupWidthVw}vw`;
+    popup.style.minHeight = `${popupHeightVh}vh`;
     popup.style.zIndex = "999999";
     popup.style.background = "rgba(255,255,255,0.94)";
     popup.style.boxShadow = "0 2px 30px rgba(0,0,0,0.5)";
     popup.style.borderRadius = "30px";
     popup.style.padding = "0";
-    popup.style.minWidth = "44vw";
-    popup.style.minHeight = "44vh";
     popup.style.display = "flex";
     popup.style.flexDirection = "column";
     popup.style.alignItems = "center";
@@ -68,31 +76,35 @@
     document.body.appendChild(popup);
   }
 
-  // Flood the screen with MANY huge GIFs
+  // Flood the screen with many huge GIFs on "annihilate" message
   chrome.runtime.onMessage.addListener((request) => {
     if (request.action === "annihilate") {
-      const popupCount = 9; // Adjust to the number of big GIFs you want
+      const popupCount = 9; // Number of big GIF popups
       for (let i = 0; i < popupCount; i++) {
         createHugePopup();
       }
     }
   });
 
-  // Notify background to reset timer on user activity
+  // Notify background to reset inactivity timer on user activity
   function notifyBackground() {
     try {
       chrome.runtime.sendMessage({ action: "resetTimer" });
-    } catch (e) {/* Ignore */}
+    } catch (e) {
+      // Ignore errors if extension context invalidated
+    }
   }
 
   ["mousemove", "keydown", "mousedown", "scroll"].forEach(ev => {
     document.addEventListener(ev, notifyBackground, true);
   });
 
-  // Clean up all popups on unload (best effort)
+  // Clean up all GIF popups on page unload (best effort)
   try {
     window.addEventListener("unload", () => {
       document.querySelectorAll("div[style*='z-index: 999999']").forEach(popup => popup.remove());
     });
-  } catch (e) { /* Ignore */ }
+  } catch (e) {
+    // Some pages block unload events for extensions; no impact
+  }
 })();
